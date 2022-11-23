@@ -1,0 +1,32 @@
+local RECHARGE_SPEED = 100
+
+function init(self)
+	self.speed = 15
+	self.recharge = 0
+end
+
+
+function update(self, dt)
+	local player_pos = go.get_position("/player")
+	local tank_pos = go.get_position()
+	local direction = tank_pos - player_pos
+	local angle = math.atan2(direction.y, direction.x)
+	local rot_angle = vmath.quat_rotation_z(angle)	
+	go.set_rotation(rot_angle)
+
+	local dir = vmath.normalize(player_pos - tank_pos)
+	tank_pos = tank_pos + dir * self.speed * dt
+	go.set_position(tank_pos)
+
+	if self.recharge < 1 then
+		-- Create a table containing property values to pass to the rocket.
+		local props = { dir = dir }    
+		-- Add explicit position (nil, the rocket will spawn at the player's position), rotation (the calculated quaternion) and spawn property values.
+		factory.create("#tankrocketfactory", nil, rot_angle, props)
+		self.recharge = RECHARGE_SPEED
+	end
+
+	if self.recharge > 0 then
+		self.recharge = self.recharge - 1
+	end
+end
